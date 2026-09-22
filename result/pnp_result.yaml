@@ -1,0 +1,216 @@
+%YAML 1.2
+---
+board_true_diagonal_mm: 160.377685546875
+pnp_repro_error_mean: 0.25950556012188514
+pnp_repro_error_max: 0.37124714255332947
+distance_range_mm: !!opencv-matrix
+   rows: 1
+   cols: 2
+   dt: f
+   data: [ 147.14888, 267.055786 ]
+per_view:
+   -
+      image: "0.jpg"
+      distance_mm: 185.14746036438089
+      repro_error: 0.25856608152389526
+      diagonal_mm: 160.37767924496225
+   -
+      image: "1.jpg"
+      distance_mm: 199.08941550244998
+      repro_error: 0.27714607119560242
+      diagonal_mm: 160.37767924496228
+   -
+      image: "10.jpg"
+      distance_mm: 197.92597505984412
+      repro_error: 0.22992046177387238
+      diagonal_mm: 160.37767924496225
+   -
+      image: "11.jpg"
+      distance_mm: 213.99562497142523
+      repro_error: 0.21926170587539673
+      diagonal_mm: 160.37767924496225
+   -
+      image: "12.jpg"
+      distance_mm: 229.01748826307121
+      repro_error: 0.25035777688026428
+      diagonal_mm: 160.37767924496228
+   -
+      image: "13.jpg"
+      distance_mm: 250.27475847455105
+      repro_error: 0.37124714255332947
+      diagonal_mm: 160.37767924496225
+   -
+      image: "14.jpg"
+      distance_mm: 267.05578243489276
+      repro_error: 0.22917777299880981
+      diagonal_mm: 160.37767924496228
+   -
+      image: "15.jpg"
+      distance_mm: 229.40753391445813
+      repro_error: 0.23258179426193237
+      diagonal_mm: 160.37767924496228
+   -
+      image: "16.jpg"
+      distance_mm: 198.81523448996799
+      repro_error: 0.27940312027931213
+      diagonal_mm: 160.37767924496228
+   -
+      image: "17.jpg"
+      distance_mm: 173.94640158395134
+      repro_error: 0.28889948129653931
+      diagonal_mm: 160.37767924496228
+   -
+      image: "18.jpg"
+      distance_mm: 162.03579532825395
+      repro_error: 0.26363694667816162
+      diagonal_mm: 160.37767924496225
+   -
+      image: "19.jpg"
+      distance_mm: 151.62700323195318
+      repro_error: 0.25117683410644531
+      diagonal_mm: 160.37767924496228
+   -
+      image: "2.jpg"
+      distance_mm: 207.15236718263321
+      repro_error: 0.25355717539787292
+      diagonal_mm: 160.37767924496228
+   -
+      image: "20.jpg"
+      distance_mm: 153.09065536787054
+      repro_error: 0.3038695752620697
+      diagonal_mm: 160.37767924496225
+   -
+      image: "21.jpg"
+      distance_mm: 197.5766232040155
+      repro_error: 0.26027461886405945
+      diagonal_mm: 160.37767924496225
+   -
+      image: "22.jpg"
+      distance_mm: 231.97084905553666
+      repro_error: 0.25935059785842896
+      diagonal_mm: 160.37767924496225
+   -
+      image: "23.jpg"
+      distance_mm: 229.71655610771347
+      repro_error: 0.22480170428752899
+      diagonal_mm: 160.37767924496225
+   -
+      image: "24.jpg"
+      distance_mm: 212.9327302263705
+      repro_error: 0.25636649131774902
+      diagonal_mm: 160.37767924496225
+   -
+      image: "25.jpg"
+      distance_mm: 169.36831499575894
+      repro_error: 0.32013106346130371
+      diagonal_mm: 160.37767924496225
+   -
+      image: "26.jpg"
+      distance_mm: 184.98242930995508
+      repro_error: 0.27019840478897095
+      diagonal_mm: 160.37767924496225
+   -
+      image: "27.jpg"
+      distance_mm: 205.71856643670515
+      repro_error: 0.2918694019317627
+      diagonal_mm: 160.37767924496228
+   -
+      image: "28.jpg"
+      distance_mm: 222.77527107534843
+      repro_error: 0.23571658134460449
+      diagonal_mm: 160.37767924496225
+   -
+      image: "29.jpg"
+      distance_mm: 228.5439788688268
+      repro_error: 0.23013381659984589
+      diagonal_mm: 160.37767924496225
+   -
+      image: "3.jpg"
+      distance_mm: 240.42081913022884
+      repro_error: 0.21578313410282135
+      diagonal_mm: 160.37767924496225
+   -
+      image: "30.jpg"
+      distance_mm: 228.28346997013392
+      repro_error: 0.20714536309242249
+      diagonal_mm: 160.37767924496225
+   -
+      image: "31.jpg"
+      distance_mm: 223.02737325436038
+      repro_error: 0.21472121775150299
+      diagonal_mm: 160.37767924496225
+   -
+      image: "32.jpg"
+      distance_mm: 181.20176484680181
+      repro_error: 0.26860952377319336
+      diagonal_mm: 160.37767924496231
+   -
+      image: "33.jpg"
+      distance_mm: 182.11796675366887
+      repro_error: 0.2375909686088562
+      diagonal_mm: 160.37767924496228
+   -
+      image: "34.jpg"
+      distance_mm: 191.16535146569851
+      repro_error: 0.2307625412940979
+      diagonal_mm: 160.37767924496225
+   -
+      image: "35.jpg"
+      distance_mm: 232.5620837495228
+      repro_error: 0.23822987079620361
+      diagonal_mm: 160.37767924496225
+   -
+      image: "36.jpg"
+      distance_mm: 197.96915981861602
+      repro_error: 0.27943187952041626
+      diagonal_mm: 160.37767924496225
+   -
+      image: "37.jpg"
+      distance_mm: 213.67164847971003
+      repro_error: 0.26473841071128845
+      diagonal_mm: 160.37767924496225
+   -
+      image: "38.jpg"
+      distance_mm: 216.54523603134803
+      repro_error: 0.31983482837677002
+      diagonal_mm: 160.37767924496225
+   -
+      image: "39.jpg"
+      distance_mm: 181.66539484204731
+      repro_error: 0.31580913066864014
+      diagonal_mm: 160.37767924496225
+   -
+      image: "4.jpg"
+      distance_mm: 250.57165174644442
+      repro_error: 0.19021116197109222
+      diagonal_mm: 160.37767924496225
+   -
+      image: "40.jpg"
+      distance_mm: 155.7447625426704
+      repro_error: 0.32662999629974365
+      diagonal_mm: 160.37767924496228
+   -
+      image: "5.jpg"
+      distance_mm: 239.05039311762076
+      repro_error: 0.20552034676074982
+      diagonal_mm: 160.37767924496228
+   -
+      image: "6.jpg"
+      distance_mm: 213.63141747548852
+      repro_error: 0.2558567225933075
+      diagonal_mm: 160.37767924496225
+   -
+      image: "7.jpg"
+      distance_mm: 170.4134737721312
+      repro_error: 0.28576758503913879
+      diagonal_mm: 160.37767924496225
+   -
+      image: "8.jpg"
+      distance_mm: 163.34652317863603
+      repro_error: 0.26256129145622253
+      diagonal_mm: 160.37767924496222
+   -
+      image: "9.jpg"
+      distance_mm: 147.14888526422433
+      repro_error: 0.26287937164306641
+      diagonal_mm: 160.37767924496225
