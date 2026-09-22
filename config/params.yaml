@@ -16,13 +16,13 @@ input_size: 640
 # conf_threshold: 置信度阈值，低于此值的候选框直接丢掉
 #   调大 -> 只保留很确信的目标，漏检增多
 #   调小 -> 检出更多，但误检（把背景当车）也增多
-conf_threshold: 0.25
+conf_threshold: 0.30
 
 # nms_threshold: NMS 的 IoU 阈值
 #   两个同类框重叠超过这个比例时，只保留置信度高的那个
 #   调大 -> 抑制变弱，同一辆车可能留下多个框
 #   调小 -> 抑制变强，挨得近的两辆车可能被误合成一个
-nms_threshold: 0.45
+nms_threshold: 0.40
 
 # 单张图最多保留多少个检测结果
 max_detections: 20
