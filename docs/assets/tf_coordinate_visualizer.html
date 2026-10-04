@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script id="lumi-getcssvar">
+window.getCssVar = window.getCssVar || function(name) {
+  try {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  } catch (e) { return ''; }
+};
+</script>
+<style id="lumi-runtime">
+html, body { margin: 0; padding: 0; overflow-y: hidden; background: transparent; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.widget-container { width: 100%; min-height: 280px; padding-inline: 0; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box; position: relative; }
+.telemetry-card { background: #f2f0f0; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; border: 1px solid rgba(0,0,0,0.08); }
+.telemetry-header { display: flex; justify-content: space-between; align-items: center; }
+.telemetry-title { margin: 0; font-size: 16px; color: #000; font-weight: 600; }
+.status-badge { display: inline-flex; align-items: center; gap: 6px; background: #daf9d4; color: #008052; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #008052; animation: pulse 1.5s infinite ease-in-out; }
+@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+.metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+.metric-item { background: #ffffff; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+.metric-label { color: rgba(0,0,0,0.55); font-size: 11px; text-transform: uppercase; }
+.metric-value { color: #000000; font-size: 13px; font-weight: 600; margin-top: 2px; }
+.viewport-wrapper { position: relative; width: 100%; height: 500px; border-radius: 12px; overflow: hidden; background: #141414; border: 1px solid rgba(0,0,0,0.08); }
+.viewport-canvas-container { position: relative; width: 100%; height: 100%; overflow: hidden; }
+#vizCanvas { display: block; width: 100%; height: 100%; outline: none; }
+.viewport-overlay { position: absolute; bottom: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; }
+.legend-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.legend-pill { background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 999px; font-size: 12px; color: #000; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(0,0,0,0.1); }
+.pill-color { width: 8px; height: 8px; border-radius: 50%; }
+.hint-pill { background: rgba(0, 0, 0, 0.6); color: #ffffff; padding: 4px 10px; border-radius: 999px; font-size: 12px; backdrop-filter: blur(8px); }
+
+/* 控制面板样式 */
+.tf-control-panel { position: absolute; top: 12px; right: 12px; width: 280px; background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 12px; color: #fff; z-index: 10; display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+.tf-control-header { font-weight: 600; font-size: 13px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px; }
+.tf-item { display: flex; flex-direction: column; background: rgba(255,255,255,0.05); padding: 6px 8px; border-radius: 6px; }
+.tf-item-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.tf-item-name { font-weight: 500; color: #9dd2ff; }
+.tf-item-values { font-family: monospace; font-size: 11px; color: #aaa; display: grid; grid-template-columns: 30px 1fr; gap: 2px; }
+.tf-val-label { color: #888; }
+/* 拨动开关 */
+.switch { position: relative; display: inline-block; width: 28px; height: 16px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .2s; border-radius: 16px; }
+.slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 50%; }
+input:checked + .slider { background-color: #3186ff; }
+input:checked + .slider:before { transform: translateX(12px); }
+</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>多级 TF 坐标系：动态数据监控</title>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="telemetry-card">
+      <div class="telemetry-header">
+        <h2 class="telemetry-title">多级 TF 坐标系实时解算</h2>
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <span>系统在线</span>
+        </div>
+      </div>
+      
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <span class="metric-label">Target (World)</span>
+          <span class="metric-value" id="val-target-pos">0.0, 0.0, 0.0</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Base Odom (P/R)</span>
+          <span class="metric-value" id="val-chassis-attitude">0.0°, 0.0°</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-label">Target (Camera)</span>
+          <span class="metric-value" id="val-target-cam">0.0, 0.0, 0.0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viewport-wrapper">
+      <!-- 动态 TF 控制与数据面板 -->
+      <div class="tf-control-panel">
+        <div class="tf-control-header">TF Tree 局部变换矩阵 (t, R)</div>
+        
+        <!-- World -->
+        <div class="tf-item">
+          <div class="tf-item-top">
+            <span class="tf-item-name" style="color:#fff;">World Frame</span>
+            <label class="switch"><input type="checkbox" id="toggle-world" checked><span class="slider"></span></label>
+          </div>
+          <div class="tf-item-values">
+            <span class="tf-val-label">t:</span><span>[0.00, 0.00, 0.00]</span>
+            <span class="tf-val-label">R:</span><span>[0.0°, 0.0°, 0.0°]</span>
+          </div>
+        </div>
+
+        <!-- Base -->
+        <div class="tf-item">
+          <div class="tf-item-top">
+            <span class="tf-item-name">base_link (wrt world)</span>
+            <label class="switch"><input type="checkbox" id="toggle-base" checked><span class="slider"></span></label>
+          </div>
+          <div class="tf-item-values">
+            <span class="tf-val-label">t:</span><span id="tf-base-t">0, 0, 0</span>
+            <span class="tf-val-label">R:</span><span id="tf-base-r">0, 0, 0</span>
+          </div>
+        </div>
+
+        <!-- Gimbal Yaw -->
+        <div class="tf-item">
+          <div class="tf-item-top">
+            <span class="tf-item-name">gimbal_yaw (wrt base)</span>
+            <label class="switch"><input type="checkbox" id="toggle-yaw" checked><span class="slider"></span></label>
+          </div>
+          <div class="tf-item-values">
+            <span class="tf-val-label">t:</span><span id="tf-yaw-t">0, 0.80, 0</span>
+            <span class="tf-val-label">R:</span><span id="tf-yaw-r">0, 0, 0</span>
+          </div>
+        </div>
+
+        <!-- Gimbal Pitch -->
+        <div class="tf-item">
+          <div class="tf-item-top">
+            <span class="tf-item-name">gimbal_pitch (wrt yaw)</span>
+            <label class="switch"><input type="checkbox" id="toggle-pitch" checked><span class="slider"></span></label>
+          </div>
+          <div class="tf-item-values">
+            <span class="tf-val-label">t:</span><span id="tf-pitch-t">0, 0.35, 0</span>
+            <span class="tf-val-label">R:</span><span id="tf-pitch-r">0, 0, 0</span>
+          </div>
+        </div>
+
+        <!-- Camera -->
+        <div class="tf-item">
+          <div class="tf-item-top">
+            <span class="tf-item-name">camera_link (wrt pitch)</span>
+            <label class="switch"><input type="checkbox" id="toggle-cam" checked><span class="slider"></span></label>
+          </div>
+          <div class="tf-item-values">
+            <span class="tf-val-label">t:</span><span id="tf-cam-t">0, 0.25, -0.40</span>
+            <span class="tf-val-label">R:</span><span>[0.0°, 0.0°, 0.0°]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="viewport-canvas-container" id="canvas-container">
+        <canvas id="vizCanvas" tabindex="0"></canvas>
+        <div class="viewport-overlay">
+          <div class="legend-pills">
+            <div class="legend-pill"><span class="pill-color" style="background: #de2d29;"></span><span>Target</span></div>
+            <div class="legend-pill"><span class="pill-color" style="background: #2575fc;"></span><span>Base</span></div>
+            <div class="legend-pill"><span class="pill-color" style="background: #8b0000;"></span><span>Gimbal</span></div>
+          </div>
+          <div class="hint-pill">拖拽旋转视角</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let scene, camera, renderer, controls;
+    let targetMesh, baseLink, gimbalYawLink, gimbalPitchLink, cameraLink, frustumMesh, trajectoryLine;
+    let dummyYaw;
+    
+    // Axes Helpers References
+    let axWorld, axBase, axYaw, axPitch, axCam;
+    
+    let targetWorldPos = new THREE.Vector3();
+    let targetCamPos = new THREE.Vector3();
+
+    function getTargetPositionAtTime(t, outVec) {
+      outVec.set(10 * Math.sin(t * 0.6), 8 + 3 * Math.sin(2 * t * 0.6), 10 * Math.sin(t * 0.6) * Math.cos(t * 0.6));
+    }
+
+    function initScene() {
+      const canvas = document.getElementById('vizCanvas');
+      if (typeof THREE === 'undefined') return setTimeout(initScene, 50);
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x141414);
+
+      const c = document.getElementById('canvas-container');
+      camera = new THREE.PerspectiveCamera(45, c.clientWidth / c.clientHeight, 0.1, 1000);
+      camera.position.set(22, 18, 25);
+      
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+      renderer.setSize(c.clientWidth, c.clientHeight);
+      
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 4, 0);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+      const dl = new THREE.DirectionalLight(0xffffff, 0.9);
+      dl.position.set(15, 25, 15);
+      scene.add(dl);
+
+      scene.add(new THREE.GridHelper(40, 40, 0x333333, 0x333333));
+      
+      // Axes Helpers
+      axWorld = new THREE.AxesHelper(6); scene.add(axWorld);
+
+      targetMesh = new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 32), new THREE.MeshStandardMaterial({color: 0xde2d29}));
+      scene.add(targetMesh);
+
+      const pts = [];
+      const v = new THREE.Vector3();
+      for (let i = 0; i <= 250; i++) {
+        getTargetPositionAtTime((i / 250) * (Math.PI * 2 / 0.6), v);
+        pts.push(v.clone());
+      }
+      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({color: 0xff4c45, opacity: 0.55, transparent: true})));
+
+      baseLink = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.2, 2.2), new THREE.MeshStandardMaterial({color: 0x2575fc}));
+      scene.add(baseLink);
+      axBase = new THREE.AxesHelper(4); baseLink.add(axBase);
+      dummyYaw = new THREE.Object3D(); baseLink.add(dummyYaw);
+
+      const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 24);
+      wheelGeo.rotateX(Math.PI / 2);
+      const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+      [[-1,-0.6,1.15], [1,-0.6,1.15], [-1,-0.6,-1.15], [1,-0.6,-1.15]].forEach(p => {
+        const w = new THREE.Mesh(wheelGeo, wheelMat);
+        w.position.set(...p); baseLink.add(w);
+      });
+
+      gimbalYawLink = new THREE.Group();
+      gimbalYawLink.position.set(0, 0.8, 0); 
+      baseLink.add(gimbalYawLink);
+      gimbalYawLink.add(new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.4, 16), new THREE.MeshStandardMaterial({color: 0x228b22})));
+      axYaw = new THREE.AxesHelper(3.5); gimbalYawLink.add(axYaw);
+
+      gimbalPitchLink = new THREE.Group();
+      gimbalPitchLink.position.set(0, 0.35, 0); 
+      gimbalYawLink.add(gimbalPitchLink);
+      const pitchGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.6, 16);
+      pitchGeo.rotateZ(Math.PI / 2);
+      gimbalPitchLink.add(new THREE.Mesh(pitchGeo, new THREE.MeshStandardMaterial({color: 0x8b0000})));
+      axPitch = new THREE.AxesHelper(3); gimbalPitchLink.add(axPitch);
+
+      cameraLink = new THREE.Group();
+      cameraLink.position.set(0, 0.25, -0.4); 
+      gimbalPitchLink.add(cameraLink);
+      const camGeo = new THREE.BoxGeometry(0.5, 0.5, 0.8);
+      camGeo.translate(0, 0, 0.4); 
+      cameraLink.add(new THREE.Mesh(camGeo, new THREE.MeshStandardMaterial({color: 0x555555})));
+      axCam = new THREE.AxesHelper(2.5); cameraLink.add(axCam);
+
+      const fGeo = new THREE.ConeGeometry(3, 10, 32, 1, true);
+      fGeo.translate(0, -5, 0); fGeo.rotateX(-Math.PI / 2);
+      cameraLink.add(new THREE.Mesh(fGeo, new THREE.MeshBasicMaterial({color: 0xf5d77f, transparent: true, opacity: 0.2, side: THREE.DoubleSide})));
+      cameraLink.add(new THREE.LineSegments(new THREE.WireframeGeometry(fGeo), new THREE.LineBasicMaterial({color: 0xffd966, transparent: true, opacity: 0.4})));
+
+      bindSwitches();
+      animate(0);
+    }
+
+    function bindSwitches() {
+      document.getElementById('toggle-world').onchange = (e) => axWorld.visible = e.target.checked;
+      document.getElementById('toggle-base').onchange = (e) => axBase.visible = e.target.checked;
+      document.getElementById('toggle-yaw').onchange = (e) => axYaw.visible = e.target.checked;
+      document.getElementById('toggle-pitch').onchange = (e) => axPitch.visible = e.target.checked;
+      document.getElementById('toggle-cam').onchange = (e) => axCam.visible = e.target.checked;
+    }
+
+    function formatVec(v) { return `[${v.x.toFixed(2)}, ${v.y.toFixed(2)}, ${v.z.toFixed(2)}]`; }
+    function formatEuler(e) { return `[${THREE.MathUtils.radToDeg(e.x).toFixed(1)}°, ${THREE.MathUtils.radToDeg(e.y).toFixed(1)}°, ${THREE.MathUtils.radToDeg(e.z).toFixed(1)}°]`; }
+
+    function updateUI(t, p, r) {
+      document.getElementById('val-target-pos').textContent = `${targetWorldPos.x.toFixed(1)}, ${targetWorldPos.y.toFixed(1)}, ${targetWorldPos.z.toFixed(1)}`;
+      document.getElementById('val-chassis-attitude').textContent = `${THREE.MathUtils.radToDeg(p).toFixed(1)}°, ${THREE.MathUtils.radToDeg(r).toFixed(1)}°`;
+      
+      // Calculate Target in Camera Frame (Visual Observation)
+      targetCamPos.copy(targetWorldPos);
+      cameraLink.worldToLocal(targetCamPos);
+      document.getElementById('val-target-cam').textContent = `${targetCamPos.x.toFixed(2)}, ${targetCamPos.y.toFixed(2)}, ${targetCamPos.z.toFixed(2)}`;
+
+      // Update Panel TF Data
+      document.getElementById('tf-base-t').textContent = formatVec(baseLink.position);
+      document.getElementById('tf-base-r').textContent = formatEuler(baseLink.rotation);
+      
+      document.getElementById('tf-yaw-r').textContent = formatEuler(gimbalYawLink.rotation);
+      document.getElementById('tf-pitch-r').textContent = formatEuler(gimbalPitchLink.rotation);
+    }
+
+    function animate(timeMs) {
+      requestAnimationFrame(animate);
+      const t = timeMs * 0.001;
+
+      getTargetPositionAtTime(t, targetWorldPos);
+      targetMesh.position.copy(targetWorldPos);
+
+      const radius = 12, baseAngle = t * 0.25;
+      baseLink.position.set(radius * Math.cos(baseAngle), 1.1, radius * Math.sin(baseAngle));
+      const pitch = Math.sin(t * 7.5) * 0.12, roll = Math.cos(t * 9.0) * 0.10, yaw = -baseAngle + Math.PI / 2;
+      baseLink.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, roll, 'YXZ'));
+
+      dummyYaw.position.copy(gimbalYawLink.position); 
+      targetMesh.getWorldPosition(targetWorldPos);
+      dummyYaw.lookAt(targetWorldPos);
+      const eulerIK = new THREE.Euler().setFromQuaternion(dummyYaw.quaternion, 'YXZ');
+      
+      gimbalYawLink.rotation.y = eulerIK.y;
+      gimbalPitchLink.rotation.x = eulerIK.x;
+
+      updateUI(t, pitch, roll);
+      
+      if(controls) controls.update();
+      renderer.render(scene, camera);
+    }
+    
+    window.addEventListener('resize', () => {
+      const c = document.getElementById('canvas-container');
+      if (c && renderer) {
+        camera.aspect = c.clientWidth / c.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(c.clientWidth, c.clientHeight);
+      }
+    });
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initScene);
+    else initScene();
+  </script>
+</body>
+</html>

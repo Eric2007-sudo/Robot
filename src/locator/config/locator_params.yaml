@@ -1,0 +1,34 @@
+# locator 节点参数。
+#
+# mount.* 是物理固连量，必须与仿真侧 locator_sim/config/sim_params.yaml 里的 scene.*
+# 对应项一致 —— 真实场景中这些值来自机械图纸或标定，locator 无从自己测得。
+/**:
+  ros__parameters:
+
+    ### 固连安装量
+    mount:
+      gimbal_yaw_offset_x: 0.0      # yaw 关节原点在 base_link 下 (m)
+      gimbal_yaw_offset_y: 0.0
+      gimbal_yaw_offset_z: 0.35
+      gimbal_pitch_offset_x: 0.05   # pitch 关节原点在 gimbal_yaw 下 (m)
+      gimbal_pitch_offset_y: 0.0
+      gimbal_pitch_offset_z: 0.12
+      camera_offset_x: 0.10         # 相机在 gimbal_pitch 下 (m)，完全固定
+      camera_offset_y: 0.0
+      camera_offset_z: 0.06
+      # 相机相对 pitch 连杆的安装倾角 (rad)。镜头不会完全平行于炮管，装配误差必须
+      # 进到模型里，否则抬到世界系的目标会有固定偏差。
+      camera_mount_roll: 0.02
+      camera_mount_pitch: -0.05
+      camera_mount_yaw: 0.03
+
+    ### 输出
+    enable_publish_marker: true
+
+    ### Subscribe topics
+    imu_topic: "locator_sim/imu/data"
+    target_topic: "locator_sim/detector/target_pose"
+
+    ### Publish topics
+    world_target_topic: "locator/target_in_world"
+    marker_topic: "locator/visualized_marker"

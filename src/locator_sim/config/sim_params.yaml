@@ -1,0 +1,81 @@
+# 仿真侧参数。三个虚拟硬件节点 + 可视化节点共用这一份文件（`/**:` 通配节点名），
+# 因此它们拿到的 scene.* 场景真值必然一致 —— 这是整条链路可闭合校验的前提。
+/**:
+  ros__parameters:
+
+    ### 场景真值：目标的卡西尼卵形线
+    scene:
+      # 卡西尼卵形线：到两焦点 (±a, 0) 的距离之积恒为 b^2
+      # b/a > 1 得到单连通的花生形闭曲线；b/a = 1 退化成双纽线；b/a < 1 会裂成两个环
+      cassini_a: 6.0            # 焦点半距 (m)
+      cassini_b: 6.6            # 卡西尼常数 (m)，b/a = 1.1
+      cassini_omega: 0.35       # 参数角推进角速度 (rad/s)，绕一周约 18 s
+      target_height: 8.0        # 飞行基准高度 (m)
+      target_height_amp: 1.5    # 高度起伏幅值 (m)，二倍频
+
+      ### 场景真值：底盘在世界系下的运动
+      chassis_radius: 12.0      # 绕原点行驶半径 (m)
+      chassis_omega: 0.25       # 行驶角速度 (rad/s)
+      chassis_height: 0.30      # 车体质心高度 (m)
+      bump_pitch_amp: 0.10      # 颠簸 pitch 幅值 (rad)
+      bump_pitch_freq: 7.5      # 颠簸 pitch 频率 (rad/s)
+      bump_roll_amp: 0.08       # 颠簸 roll 幅值 (rad)
+      bump_roll_freq: 9.0       # 颠簸 roll 频率 (rad/s)
+      bump_z_amp: 0.04          # 颠簸竖直跳动幅值 (m)
+      bump_z_freq: 11.0         # 颠簸竖直跳动频率 (rad/s)
+
+      ### 固连安装量：物理装配决定，运行中不变
+      gimbal_yaw_offset_x: 0.0      # yaw 关节原点在 base_link 下 (m)
+      gimbal_yaw_offset_y: 0.0
+      gimbal_yaw_offset_z: 0.35
+      gimbal_pitch_offset_x: 0.05   # pitch 关节原点在 gimbal_yaw 下 (m)
+      gimbal_pitch_offset_y: 0.0
+      gimbal_pitch_offset_z: 0.12
+      camera_offset_x: 0.10         # 相机在 gimbal_pitch 下 (m)，完全固定
+      camera_offset_y: 0.0
+      camera_offset_z: 0.06
+      # 相机安装倾角 (rad)，模拟镜头不完全平行于炮管。
+      # 必须与 locator 的 mount.camera_mount_* 一致
+      camera_mount_roll: 0.02
+      camera_mount_pitch: -0.05
+      camera_mount_yaw: 0.03
+
+      gimbal_pitch_limit: 1.45      # 云台 pitch 机械限位 (rad)，默认场景需求约 1.27
+
+    ### 虚拟串口
+    serial:
+      publish_rate: 200.0       # 收包频率 (Hz)
+      transport_delay: 0.002    # 传输延迟 (s)，时间戳需回退这么多才是下位机采样时刻
+      odom_topic: "locator_sim/serial/chassis_odom"
+
+    ### 虚拟 IMU，固连在云台 pitch 连杆上
+    imu:
+      publish_rate: 500.0       # 采样频率 (Hz)
+      gravity: 9.81             # 重力加速度 (m/s^2)，加速度计输出含重力比力
+      # 传输延迟 (s)。必须大于 serial.transport_delay + 串口周期（2 + 5 = 7 ms），
+      # 否则 IMU 的时间戳会新于串口 TF 的最新时刻，locator 查底盘姿态时只能等待，
+      # 500 Hz 下会迅速积压并拖垮整条链路。取 10 ms 留出余量。
+      transport_delay: 0.010
+      topic: "locator_sim/imu/data"
+      # 云台关节角真值旁路，仅供 verify_gimbal.py 使用，locator 不订阅
+      joint_truth_topic: "locator_sim/imu/gimbal_joint_truth"
+
+    ### 虚拟上游 detector
+    detector:
+      publish_rate: 60.0        # 帧率 (Hz)
+      pipeline_delay: 0.020     # 检测耗时 (s)。时间戳是曝光时刻，消息延迟这么久才发出，
+                                # 这样下游按时间戳查 TF 时插值区间才是完整的
+      half_fov_horizontal: 0.52 # 水平半视场 (rad)，约 60° 全视场
+      half_fov_vertical: 0.42   # 垂直半视场 (rad)，约 48° 全视场
+      max_range: 40.0           # 最大观测距离 (m)
+      target_topic: "locator_sim/detector/target_pose"
+      truth_topic: "locator_sim/detector/target_truth"   # 真值旁路，仅供校验脚本，locator 不订阅
+
+    ### 仿真可视化
+    visualizer:
+      publish_rate: 30.0
+      marker_topic: "locator_sim/markers"
+      trajectory_samples: 500   # 真值曲线采样点数
+      fov_range: 6.0            # 视场锥绘制长度 (m)
+      fov_half_horizontal: 0.52 # 与 detector.half_fov_horizontal 保持一致
+      fov_half_vertical: 0.42   # 与 detector.half_fov_vertical 保持一致

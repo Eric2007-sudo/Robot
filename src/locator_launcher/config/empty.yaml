@@ -1,0 +1,5 @@
+# 默认的空覆盖文件。locator_launcher.launch.py 的 override_params 参数默认指向这里，
+# 需要做参数扫描实验时把 override_params 指向自己的 YAML 即可。
+/**:
+  ros__parameters:
+    {}
