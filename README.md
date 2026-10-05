@@ -34,7 +34,7 @@ camera_optical → camera_link → gimbal_pitch → gimbal_yaw → base_link →
 | [Part_of_Cpp.md](docs/Part_of_Cpp.md) | 本题用到的 C++。智能指针、引用、lambda、异常、std::function，每种对应代码里的具体一行 |
 | [Part_of_Foxglove.md](docs/Part_of_Foxglove.md) | 可视化。3D 面板、Transform Tree、Plot，以及各检查点应该看到什么 |
 
-配套材料在 `docs/assets/`：上面这张坐标系示意图、一张完成后 Foxglove 的效果图（插在
+配套材料在 `docs/assets/`：上面这张坐标系示意图、一张启动仿真后 Foxglove 的效果图（插在
 `Part_of_Foxglove.md` 里）、一个可交互的多级坐标系演示网页 `tf_coordinate_visualizer.html`。
 
 ## 环境
