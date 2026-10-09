@@ -1,0 +1,81 @@
+{
+  "configById": {
+    "3D!locator3d": {
+      "followMode": "follow-none",
+      "followTf": "world",
+      "fixedFrame": "world",
+      "scene": {},
+      "transforms": {},
+      "topics": {
+        "/locator_sim/markers/static": { "visible": true },
+        "/locator_sim/markers": { "visible": true },
+        "/locator/target_in_world": { "visible": true },
+        "/locator/visualized_marker": { "visible": true },
+        "/locator_sim/detector/target_truth": { "visible": true },
+        "/locator_sim/detector/target_pose": { "visible": true }
+      },
+      "layers": {},
+      "publish": {},
+      "synchronize": false,
+      "imageMode": {}
+    },
+    "Plot!locatorx": {
+      "paths": [
+        {
+          "timestampMethod": "headerStamp",
+          "value": "/locator_sim/detector/target_truth.pose.position.x",
+          "enabled": true,
+          "label": "truth x",
+          "lineSize": 3,
+          "color": "#ff3b30"
+        },
+        {
+          "timestampMethod": "headerStamp",
+          "value": "/locator/target_in_world.pose.position.x",
+          "enabled": true,
+          "label": "located x",
+          "lineSize": 1,
+          "color": "#00c8ff"
+        }
+      ],
+      "showLine": true,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": true,
+      "legendDisplay": "floating",
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "plottingViewWidth": 800
+    },
+    "RawMessages!locatorraw": {
+      "topicPath": "/locator/target_in_world",
+      "expansion": {},
+      "defaultExpanded": false
+    },
+    "TransformTree!locatortf": {
+      "expansion": {}
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": {
+    "direction": "row",
+    "splitPercentage": 60,
+    "first": "3D!locator3d",
+    "second": {
+      "direction": "column",
+      "splitPercentage": 45,
+      "first": "Plot!locatorx",
+      "second": {
+        "direction": "column",
+        "splitPercentage": 50,
+        "first": "TransformTree!locatortf",
+        "second": "RawMessages!locatorraw"
+      }
+    }
+  }
+}

@@ -20,6 +20,9 @@
 #include <tf2_ros/transform_listener.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 
+#include <rclcpp/callback_group.hpp>
+#include <rclcpp/subscription_options.hpp>
+
 namespace locator {
 using namespace geometry_msgs::msg;
 using namespace sensor_msgs::msg;
@@ -99,8 +102,26 @@ public:
         // 回调组这一条运行结果上不一定看得出来，但批改会看。为什么要这样做、
         // 它需要什么样的执行器配合，见 docs/Part_of_ROS2.md。
         // ====================================================================
-        (void)imu_topic;
-        (void)target_topic;
+        imu_cb_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        target_cb_group_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
+        rclcpp::SubscriptionOptions imu_options;
+        imu_options.callback_group = imu_cb_group_;
+        imu_sub_ = create_subscription<Imu>(
+            imu_topic,
+            rclcpp::SensorDataQoS().keep_last(50),
+            [this](const Imu::SharedPtr msg) { imu_callback(msg); },
+            imu_options
+        );
+
+        rclcpp::SubscriptionOptions target_options;
+        target_options.callback_group = target_cb_group_;
+        target_sub_ = create_subscription<PoseStamped>(
+            target_topic,
+            rclcpp::QoS(10),
+            [this](const PoseStamped::SharedPtr msg) { target_callback(msg); },
+            target_options
+        );
 
         RCLCPP_INFO(get_logger(), "locator up");
     }
@@ -112,7 +133,16 @@ private:
     /// gimbal_pitch -> camera_link 的安装量 camera_to_pitch_ 已在构造函数里读好；
     /// camera_link -> camera_optical 用 tf_utils::camera_optical_rotation()。
     void publish_static_transforms() {
-        // TODO
+        std::vector<geometry_msgs::msg::TransformStamped> transforms;
+        const rclcpp::Time stamp = now();
+        transforms.push_back(tf_utils::to_transform_stamped(
+            camera_to_pitch_, frames::GIMBAL_PITCH, frames::CAMERA_LINK, stamp
+        ));
+        transforms.push_back(tf_utils::to_transform_stamped(
+            tf_utils::camera_optical_rotation(), frames::CAMERA_LINK, frames::CAMERA_OPTICAL,
+            stamp
+        ));
+        static_broadcaster_->sendTransform(transforms);
     }
 
     /// 由 IMU 的绝对姿态反解云台 yaw / pitch 两个关节角，
@@ -127,8 +157,45 @@ private:
     ///
     /// 关节原点的平移是 gimbal_yaw_offset_ / gimbal_pitch_offset_。
     void imu_callback(const Imu::SharedPtr msg) {
-        // TODO
-        (void)msg;
+        const rclcpp::Time stamp = msg->header.stamp;
+
+        tf2::Transform chassis_to_world;
+        if (!tf_utils::try_lookup_tf(
+                tf_buffer_, frames::WORLD, frames::BASE_LINK, stamp, chassis_to_world,
+                [this](const std::string& err) {
+                    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
+                        "chassis pose not available at imu stamp: %s", err.c_str());
+                })) {
+            return;
+        }
+
+        tf2::Quaternion imu_q;
+        tf2::fromMsg(msg->orientation, imu_q);
+        const tf2::Matrix3x3 R_world_pitch(imu_q);
+        const tf2::Matrix3x3 R_world_base = chassis_to_world.getBasis();
+        const tf2::Matrix3x3 R_base_pitch = R_world_base.transpose() * R_world_pitch;
+
+        double yaw = 0.0, pitch = 0.0, roll = 0.0;
+        R_base_pitch.getEulerYPR(yaw, pitch, roll);
+
+        if (std::abs(roll) > residual_roll_warn_threshold_) {
+            RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
+                "unexpected residual roll %.4f rad", roll);
+        }
+
+        const tf2::Transform yaw_to_base =
+            tf_utils::make_transform(gimbal_yaw_offset_, 0.0, 0.0, yaw);
+        const tf2::Transform pitch_to_yaw =
+            tf_utils::make_transform(gimbal_pitch_offset_, 0.0, pitch, 0.0);
+
+        std::vector<geometry_msgs::msg::TransformStamped> transforms;
+        transforms.push_back(tf_utils::to_transform_stamped(
+            yaw_to_base, frames::BASE_LINK, frames::GIMBAL_YAW, stamp
+        ));
+        transforms.push_back(tf_utils::to_transform_stamped(
+            pitch_to_yaw, frames::GIMBAL_YAW, frames::GIMBAL_PITCH, stamp
+        ));
+        tf_broadcaster_->sendTransform(transforms);
     }
 
     /// 把目标从相机光学系变换到世界系，发布到 world_target_pub_。
@@ -140,8 +207,32 @@ private:
     ///     校验脚本靠时间戳把你的输出和真值逐点配对
     ///   - enable_publish_marker_ 为 true 时调用 publish_marker
     void target_callback(const PoseStamped::SharedPtr msg) {
-        // TODO
-        (void)msg;
+        const rclcpp::Time stamp = msg->header.stamp;
+
+        tf2::Transform optical_to_world;
+        if (!tf_utils::try_lookup_tf(
+                tf_buffer_, frames::WORLD, msg->header.frame_id, stamp, optical_to_world,
+                [&](const std::string& err) {
+                    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000,
+                        "tf chain world -> %s not available at observation stamp: %s",
+                        msg->header.frame_id.c_str(), err.c_str());
+                })) {
+            return;
+        }
+
+        tf2::Transform target_to_optical;
+        tf2::fromMsg(msg->pose, target_to_optical);
+        const tf2::Transform target_to_world = optical_to_world * target_to_optical;
+
+        PoseStamped out;
+        out.header.stamp = stamp;
+        out.header.frame_id = frames::WORLD;
+        out.pose = tf_utils::to_pose(target_to_world);
+        world_target_pub_->publish(out);
+
+        if (enable_publish_marker_) {
+            publish_marker(target_to_world, stamp);
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -214,7 +305,8 @@ private:
     std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
 
     // ---- 订阅与发布 ----
-    // TODO: 回调组等你需要的成员，自己加在这里
+    rclcpp::CallbackGroup::SharedPtr imu_cb_group_;
+    rclcpp::CallbackGroup::SharedPtr target_cb_group_;
     rclcpp::Subscription<Imu>::SharedPtr imu_sub_;
     rclcpp::Subscription<PoseStamped>::SharedPtr target_sub_;
     rclcpp::Publisher<PoseStamped>::SharedPtr world_target_pub_;

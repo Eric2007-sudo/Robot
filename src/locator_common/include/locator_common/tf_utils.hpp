@@ -42,14 +42,16 @@ inline bool try_lookup_tf(
     tf2::Transform& tf_out,
     const std::function<void(const std::string& err_info)>& err_info_handler
 ) {
-    // TODO
-    (void)tf_buffer;
-    (void)target;
-    (void)source;
-    (void)time;
-    (void)tf_out;
-    (void)err_info_handler;
-    return false;
+    try {
+        const auto msg = tf_buffer->lookupTransform(target, source, time);
+        tf2::fromMsg(msg.transform, tf_out);
+        return true;
+    } catch (const tf2::TransformException& ex) {
+        if (err_info_handler) {
+            err_info_handler(ex.what());
+        }
+        return false;
+    }
 }
 
 /// 由平移与 roll / pitch / yaw 三个角拼出一个变换。
@@ -63,12 +65,9 @@ inline tf2::Transform make_transform(
     const double pitch,
     const double yaw
 ) {
-    // TODO
-    (void)translation;
-    (void)roll;
-    (void)pitch;
-    (void)yaw;
-    return tf2::Transform::getIdentity();
+    tf2::Quaternion q;
+    q.setRPY(roll, pitch, yaw);
+    return tf2::Transform(q, translation);
 }
 
 /// 把 tf2::Transform 填进一条 TransformStamped 消息。
@@ -81,19 +80,20 @@ inline geometry_msgs::msg::TransformStamped to_transform_stamped(
     const std::string& child_frame,
     const rclcpp::Time& stamp
 ) {
-    // TODO
-    (void)tf;
-    (void)parent_frame;
-    (void)child_frame;
-    (void)stamp;
-    return geometry_msgs::msg::TransformStamped();
+    geometry_msgs::msg::TransformStamped msg;
+    msg.header.stamp = stamp;
+    msg.header.frame_id = parent_frame;
+    msg.child_frame_id = child_frame;
+    msg.transform = tf2::toMsg(tf);
+    return msg;
 }
 
 /// 把 tf2::Transform 当作位姿，转成 geometry_msgs::msg::Pose。
 inline geometry_msgs::msg::Pose to_pose(const tf2::Transform& tf) {
-    // TODO
-    (void)tf;
-    return geometry_msgs::msg::Pose();
+    geometry_msgs::msg::Pose pose;
+    tf2::toMsg(tf.getOrigin(), pose.position);
+    pose.orientation = tf2::toMsg(tf.getRotation());
+    return pose;
 }
 
 /// camera_link（REP-103：x 前 y 左 z 上）到 camera_optical（相机光学系）的固定旋转。
@@ -102,8 +102,12 @@ inline geometry_msgs::msg::Pose to_pose(const tf2::Transform& tf) {
 /// 两者的轴向约定、以及这个旋转怎么推出来，见 docs/Part_of_TF.md 和
 /// docs/Part_of_Robotics_Math.md。
 inline tf2::Transform camera_optical_rotation() {
-    // TODO
-    return tf2::Transform::getIdentity();
+    const tf2::Matrix3x3 basis(
+        0.0,  0.0, 1.0,
+        -1.0, 0.0, 0.0,
+        0.0, -1.0, 0.0
+    );
+    return tf2::Transform(basis, tf2::Vector3(0.0, 0.0, 0.0));
 }
 
 } // namespace locator_common::tf_utils
