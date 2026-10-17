@@ -1,0 +1,17 @@
+# 导航节点参数。话题名要和各节点的约定一致（代价图由 map_server 发）。
+/**:
+  ros__parameters:
+    topics:
+      cost_map_topic: "/map_server/global_cost_map"
+      goal_topic: "/nav_goal"
+      cmd_vel_topic: "/nav_executor/cmd_vel"
+      path_topic: "/nav_executor/global_path"
+    control_rate: 20.0          # 控制循环频率 Hz
+    goal_tolerance: 0.15        # 到达判定半径 m
+    lookahead_distance: 0.5     # 纯追踪前瞻距离 m
+    max_linear_velocity: 1.0    # 最大线速度 m/s
+    slowdown_distance: 1.0       # 距离目标小于该值时逐渐减速 m
+    max_linear_acceleration: 1.0 # 线速度最大加速度 m/s^2
+    max_linear_deceleration: 1.5 # 线速度最大减速度 m/s^2
+    max_angular_velocity: 2.0   # 最大角速度 rad/s
+    occupied_threshold: 99      # 代价值 >= 该阈值视为障碍（99=inscribed，避开机器人半径内）

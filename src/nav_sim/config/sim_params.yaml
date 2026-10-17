@@ -1,0 +1,24 @@
+# 仿真参数。这是"硬件"侧的配置，只读。地图与代价图见 map_server 包。
+# 定位结果 map->odom 故意设成非平凡变换：车体在 map 系的位姿必须查 TF 才能得到，
+# 直接把 odom 系的里程计位姿当 map 系用会整体偏移（这是导航最经典的坑之一）。
+
+/**:
+  ros__parameters:
+    robot:
+      start_x: 4.42
+      start_y: 6.23
+      start_yaw: 0.0
+      control_rate: 50.0     # 仿真积分频率 Hz
+      odom_topic: "/nav_sim/odom"
+      truth_topic: "/nav_sim/ground_truth"
+      truth_path_topic: "/nav_sim/ground_truth_path"
+      map_velocity_topic: "/nav_sim/map_velocity"
+      trajectory_sample_distance: 0.05  # 实际轨迹采样间距 m
+      trajectory_max_points: 5000       # 限制轨迹历史长度，避免 Path 无限增长
+      trajectory_publish_rate: 2.0      # 实际轨迹 Path 发布频率 Hz
+      cmd_vel_topic: "/nav_executor/cmd_vel"
+
+    localization:
+      map_to_odom_x: 4.0     # map->odom 平移 x（odom 原点在 map 系的位置，取场地内一点）
+      map_to_odom_y: 6.0     # map->odom 平移 y
+      map_to_odom_yaw: 0.3   # map->odom 旋转（弧度）

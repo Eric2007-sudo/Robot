@@ -1,0 +1,19 @@
+# 地图服务器参数。只读。
+# 地图服务器参数：地图文件、膨胀参数、发布频率和调试输出。
+/**:
+  ros__parameters:
+    map:
+      msgpack: "RMUC202605.msgpack" # 比赛地形标注地图
+      frame_id: "map"
+
+    global_map:
+      inflation:                   # 连续代价膨胀
+        full_cost_radius_m: 0.1    # 该半径内代价=99（inscribed）
+        cutoff_radius_m: 0.3       # 超过该半径后代价=0
+        decay_rate_per_m: 24.0      # 指数衰减率
+      cost_map_pub_topic: "/map_server/global_cost_map"
+      pub_freq: 1.0                # 代价图重发频率 Hz（<=0 只发一次）
+
+    debug:
+      enable: true                # 是否发布未膨胀的静态图
+      static_map_pub_topic: "/map_server/debug/static_map"
