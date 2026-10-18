@@ -10,8 +10,8 @@
 | 2 | `Part_of_Map.md` | 坐标、TF、栅格索引和代价图怎样对应 | 完成坐标换算、`toGridMap` 和地图理解 |
 | 3 | `Part_of_AStar.md` | 怎样在代价栅格上求合法可执行路径 | 完成 `astar_planner.cpp` |
 | 4 | `Part_of_PathTracking.md` | 怎样让差速底盘沿路径运动 | 完成 `pure_pursuit.cpp` |
-| 6 | `Part_of_NavExecutor.md` | 怎样把地图、TF、规划和控制接成节点 | 完成节点和 launch |
-| 7 | `Part_of_Validation.md` | 怎样分层验证和定位错误 | 运行三个校验脚本并准备验收 |
+| 5 | `Part_of_NavExecutor.md` | 怎样把地图、TF、规划和控制接成节点 | 完成节点和 launch |
+| 6 | `Part_of_Foxglove.md` | 怎样在 3D 面板中点击发布目标点 | 向导航系统发送目标点 |
 
 ## 建议工作顺序
 
@@ -23,10 +23,10 @@
   -> 纯追踪单元测试
   -> nav_executor 集成
   -> launch
-  -> 三个运行时校验
+  -> 分别重启系统并运行三个运行时校验
 ```
 
-不要在整套系统启动失败时同时修改 A*、控制器和节点。先用单元测试验证纯算法，再用运行时校验定位集成问题。
+不要在整套系统启动失败时同时修改 A*、控制器和节点。先用单元测试验证纯算法，再用 Foxglove 观察话题和运行时校验定位集成问题。
 
 ## 文件和任务的对应关系
 

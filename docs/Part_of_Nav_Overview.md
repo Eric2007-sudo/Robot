@@ -110,7 +110,7 @@ launch（`nav.launch.py`）。 把仿真、地图、导航节点、可视化一�
 | 2 | `Part_of_AStar.md` | 完成 `astar_planner.cpp` |
 | 3 | `Part_of_PathTracking.md` | 完成 `pure_pursuit.cpp` |
 | 4 | `Part_of_NavExecutor.md` | 完成导航节点和 launch |
-| 5 | `Part_of_Validation.md` | 验收、可视化和排错 |
+| 5 | `Part_of_Foxglove.md` | 在 3D 面板中点击发布目标点 |
 
 建议按顺序读。读完坐标、栅格和代价图后可以先动手写规划器
 

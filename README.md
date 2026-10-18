@@ -26,7 +26,7 @@ Test4_Navigation/
 │   ├── Part_of_AStar.md            A*、启发函数、对角穿墙
 │   ├── Part_of_PathTracking.md     差速运动学、纯追踪
 │   ├── Part_of_NavExecutor.md      节点集成和 launch
-│   └── Part_of_Validation.md       分层验证和排错
+│   └── Part_of_Foxglove.md         在 3D 面板中点击发布目标点
 └── src/
     ├── nav_common/                 数据结构 + 坐标系名字（只读）
     ├── nav_sim/                    差速底盘仿真 + 真值（只读，裁判）
@@ -78,6 +78,8 @@ colcon test-result --verbose
 
 运行时检查（整套 launch 跑起来后另开终端）：
 
+三个脚本分别从新启动的导航系统运行。每次只运行一个脚本；脚本退出后停止整套系统，重新启动，再运行下一个。这样每项测试都从仿真起点开始，不会沿用上一个脚本留下的机器人位置。
+
 ```bash
 ros2 run nav_launcher verify_planner.py
 ros2 run nav_launcher verify_reach.py
@@ -95,7 +97,7 @@ ros2 run nav_launcher verify_tracking.py
 5. **完成纯追踪**：阅读公式后实现 `computeCommand`，运行 `colcon test --packages-select nav_controller`。
 6. **完成节点集成**：实现 `nav_executor_node.cpp` 的五个 TODO，重点检查 TF 查询使用的是 `map -> base_link`。
 7. **完成 launch**：按 `src/nav_launcher/launch/README.md` 创建 `nav.launch.py`，然后启动整套系统。
-8. **分层验收**：先跑 `verify_planner.py`，再跑 `verify_reach.py`，最后跑 `verify_tracking.py`。路径错查 A\*，路径对但车不到查 TF/节点逻辑，车能到但偏差大查纯追踪。
+8. **分层验收**：分别从新启动的系统运行 `verify_planner.py`、`verify_reach.py` 和 `verify_tracking.py`，每个脚本运行后重启系统再测下一项。路径错查 A\*，路径对但车不到查 TF/节点逻辑，车能到但偏差大查纯追踪。
 
 ## 预期结果
 

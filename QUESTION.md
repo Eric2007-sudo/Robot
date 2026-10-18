@@ -30,11 +30,11 @@ rosdep install --from-paths src --ignore-src -y
 bash check_env.sh
 ```
 
-`check_env.sh` 会逐项检查并打印缺失项的修复命令。**遇到任何环境方面的问题，先跑它，提问时把输出贴出来。** 环境和依赖的完整说明见 `docs/Part_of_Validation.md`。
+`check_env.sh` 会逐项检查并打印缺失项的修复命令。**遇到任何环境方面的问题，先跑它，提问时把输出贴出来。**
 
 ### 2. 读文档
 
-按 `docs/README.md` 的顺序阅读。文档按职责拆分，不要跳过坐标和验证部分：
+按 `docs/README.md` 的顺序阅读。文档按职责拆分，不要跳过坐标和 Foxglove 操作部分：
 
 | 顺序 | 文档 | 内容 | 读完后做什么 |
 |---:|---|---|---|
@@ -43,7 +43,7 @@ bash check_env.sh
 | 3 | `Part_of_AStar.md` | Dijkstra→A*、启发、对角穿墙 | 完成 `astar_planner.cpp` |
 | 4 | `Part_of_PathTracking.md` | 差速运动学、纯追踪 | 完成 `pure_pursuit.cpp` |
 | 5 | `Part_of_NavExecutor.md` | 导航节点、路径和 launch | 完成节点集成 |
-| 6 | `Part_of_Validation.md` | Foxglove、校验脚本和排错 | 跑通、排错 |
+| 6 | `Part_of_Foxglove.md` | 在 3D 面板中点击发布目标点 | 向导航系统发送目标点 |
 
 坐标、代价图和节点文档先建立整体印象；A\* 和纯追踪文档再分别推导算法公式。
 
@@ -151,7 +151,7 @@ colcon test-result --verbose
 ros2 launch nav_launcher nav.launch.py
 ```
 
-另开终端，先 `source install/setup.bash`：
+另开终端，先 `source install/setup.bash`。三个运行时校验分别从新启动的导航系统运行：启动整套系统后运行一个脚本；脚本退出后停止系统、重新启动，再运行下一个。这样每项测试都从仿真起点开始。
 
 ```bash
 # 4. 规划器

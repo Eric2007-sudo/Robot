@@ -30,4 +30,4 @@ ros2 launch nav_launcher nav.launch.py
 启动后：
 - `ros2 node list` 能看到 map_server、robot_sim、nav_executor、foxglove_bridge；
 - `ros2 topic echo /map_server/global_cost_map`（或 `--once`）能看到代价图；
-- 另开终端跑 `ros2 run nav_launcher verify_planner.py` 等三个脚本能打印"通过"。
+- 另开终端分别运行三个校验脚本。每个脚本运行后停止并重新启动整套系统，再运行下一个，确保每项测试都从仿真起点开始。
