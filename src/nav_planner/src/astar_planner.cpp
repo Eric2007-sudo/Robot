@@ -187,7 +187,12 @@ std::vector<nav_common::Vec2d> planPath(
                 continue;
             }
 
-            const double step_cost = diagonal ? diagonal_cost : map.resolution;
+            constexpr double kSafetyCostWeight = 2.0;
+            const double base_step_cost = diagonal ? diagonal_cost : map.resolution;
+            const double cell_cost =
+                static_cast<double>(map.valueAt(next_row, next_col));
+            const double step_cost =
+                base_step_cost * (1.0 + kSafetyCostWeight * cell_cost / 100.0);
             const double new_g = current.g + step_cost;
             const int next_id = map.index(next_row, next_col);
             if (new_g >= g_score[next_id]) {
